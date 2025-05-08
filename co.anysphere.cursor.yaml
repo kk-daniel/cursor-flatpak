@@ -1,0 +1,122 @@
+app-id: co.anysphere.cursor
+runtime: org.freedesktop.Sdk
+runtime-version: "24.08"
+sdk: org.freedesktop.Sdk
+base: org.electronjs.Electron2.BaseApp
+base-version: "24.08"
+command: cursor
+tags: [proprietary]
+separate-locales: false
+finish-args:
+  - --require-version=0.10.3
+  - --share=network
+  - --share=ipc
+  - --socket=x11
+  - --socket=pulseaudio
+  - --socket=ssh-auth
+  - --device=all
+  - --allow=devel
+  - --filesystem=host
+  - --env=NPM_CONFIG_GLOBALCONFIG=/app/etc/npmrc
+  - --env=LD_LIBRARY_PATH=/app/lib
+  # required to fix cursor scaling on wayland
+  - --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
+  - --system-talk-name=org.freedesktop.login1
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.freedesktop.secrets
+  - --talk-name=org.freedesktop.Flatpak
+  - --talk-name=com.canonical.AppMenu.Registrar
+  - --talk-name=com.canonical.AppMenu.Registrar.*
+add-extensions:
+  com.visualstudio.code.tool:
+    directory: tools
+    subdirectories: true
+    version: "24.08"
+    add-ld-path: lib
+    no-autodownload: true
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /share/gtk-doc
+  - /share/man
+  - '*.a'
+  - '*.la'
+modules:
+  - name: cursor
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 cursor.sh /app/bin/cursor
+      - install -Dm755 stub_sandbox /app/bin/stub_sandbox
+      - |
+        for s in 22 32 48 64 128 256 512; do
+          install -Dm644 ${s}.png /app/share/icons/hicolor/${s}x${x}/apps/${FLATPAK_ID}.png
+        done
+      - install -Dm644 ${FLATPAK_ID}.desktop -t /app/share/applications/
+      - install -Dm644 npmrc -t /app/etc
+      - install -Dm644 flatpak-warning.txt -t /app/share/cursor
+      - install -D apply_extra -t /app/bin
+      - mkdir /app/tools
+    sources:
+      - type: extra-data
+        filename: appimage
+        url: https://downloads.cursor.com/production/0781e811de386a0c5bcb07ceb259df8ff8246a52/linux/x64/Cursor-0.49.6-x86_64.AppImage
+        sha256: 587e3f670d15266446c91ccc9644e19216787c6cac30a0544883c24ecc864b8c
+        size: 187053248
+      - type: script
+        dest-filename: apply_extra
+        commands:
+          - unappimage appimage &>/dev/null
+          - rm -f appimage
+          #- rm -f squashfs-root/{.DirIcon,AppRun,cursor.desktop,co.anysphere.cursor.png}
+          - mv squashfs-root/usr/share/cursor cursor
+          - rm -rf squashfs-root
+          - install -Dm755 /app/bin/stub_sandbox chrome-sandbox
+      - type: script
+        dest-filename: stub_sandbox
+        commands:
+          - |
+            echo Stub sandbox ignoring command: $@
+            exit 1
+      - type: file
+        path: cursor.sh
+      - type: file
+        path: flatpak-warning.txt
+      - type: file
+        path: npmrc
+      - type: file
+        path: co.anysphere.cursor.desktop
+      - type: file
+        path: icons/22.png
+      - type: file
+        path: icons/24.png
+      - type: file
+        path: icons/32.png
+      - type: file
+        path: icons/48.png
+      - type: file
+        path: icons/64.png
+      - type: file
+        path: icons/128.png
+      - type: file
+        path: icons/256.png
+      - type: file
+        path: icons/512.png
+    modules:
+      - ./modules/libsecret/libsecret.json
+      - ./modules/fuse/fuse3.json
+      - ./modules/unappimage/unappimage.json
+  - name: host-spawn
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 host-spawn /app/bin/host-spawn
+    sources:
+      - type: file
+        url: https://github.com/1player/host-spawn/releases/download/1.5.0/host-spawn-x86_64
+        sha256: dbf67e7e111c4fe1edb0c642cbb4193064ca5b384aeb1054fc2befba6ed88b83
+        dest-filename: host-spawn
+        only-arches: [x86_64]
+      - type: file
+        url: https://github.com/1player/host-spawn/releases/download/1.5.0/host-spawn-aarch64
+        sha256: c42c12be6cdd83e374b847bec836659fb45231215797777c9ee1c9c0ae9e3783
+        dest-filename: host-spawn
+        only-arches: [aarch64]

@@ -4,7 +4,7 @@ Name=Cursor
 Comment=Cursor - The AI Code Editor
 GenericName=Text Editor
 Exec=cursor --reuse-window %F
-#Icon=com.cursor.cursor
+Icon=co.anysphere.cursor
 Terminal=false
 StartupNotify=true
 StartupWMClass=Cursor
@@ -15,4 +15,4 @@ Actions=new-empty-window;
 [Desktop Action new-empty-window]
 Name=New Empty Window
 Exec=cursor --new-window %F
-#Icon=com.cursor.cursor
+Icon=co.anysphere.cursor

@@ -1,3 +1,8 @@
-/builddir
+# Flatpak repository
 /repo
-/.flatpak-builder
+# Build directories
+.flatpak-builder
+/build
+/builddir
+# Flatpak bundles
+*.flatpak

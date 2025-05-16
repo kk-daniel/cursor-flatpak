@@ -49,7 +49,7 @@ modules:
       - install -Dm755 stub_sandbox /app/bin/stub_sandbox
       - |
         for s in 22 32 48 64 128 256 512; do
-          install -Dm644 ${s}.png /app/share/icons/hicolor/${s}x${x}/apps/${FLATPAK_ID}.png
+          install -Dm644 ${s}.png /app/share/icons/hicolor/${s}x${s}/apps/${FLATPAK_ID}.png
         done
       - install -Dm644 ${FLATPAK_ID}.desktop -t /app/share/applications/
       - install -Dm644 npmrc -t /app/etc
@@ -59,9 +59,9 @@ modules:
     sources:
       - type: extra-data
         filename: appimage
-        url: https://downloads.cursor.com/production/0781e811de386a0c5bcb07ceb259df8ff8246a52/linux/x64/Cursor-0.49.6-x86_64.AppImage
-        sha256: 587e3f670d15266446c91ccc9644e19216787c6cac30a0544883c24ecc864b8c
-        size: 187053248
+        url: https://downloads.cursor.com/production/8ea935e79a50a02da912a034bbeda84a6d3d355d/linux/x64/Cursor-0.50.4-x86_64.AppImage
+        sha256: 8a4fb64ea991867cd733eaa8090f8a2d0916fdca994aa7194b63f6cae50f188f
+        size: 188159168
       - type: script
         dest-filename: apply_extra
         commands:
@@ -102,8 +102,6 @@ modules:
       - type: file
         path: icons/512.png
     modules:
-      - ./modules/libsecret/libsecret.json
-      - ./modules/fuse/fuse3.json
       - ./modules/unappimage/unappimage.json
   - name: host-spawn
     buildsystem: simple

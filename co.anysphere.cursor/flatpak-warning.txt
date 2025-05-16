@@ -2,10 +2,10 @@
 https://www.flathub.org
 
 ------------------------------------------------------------------------------------
-| Warning: You are running an unofficial Flatpak version of Visual Studio Code !!! |
+| Warning: You are running an unofficial Flatpak version of Cursor !!! |
 ------------------------------------------------------------------------------------
 
-Please open issues under: https://github.com/flathub/com.visualstudio.code/issues
+Please open issues under: https://github.com/kk-daniel/cursor-flatpak/issues
 
 
 This version is running inside a container and is therefore not able
@@ -31,7 +31,7 @@ you can add this to the settings:
 This Flatpak provides a standard development environment (gcc, python, etc).
 To see what's available:
 
-  $ flatpak run --command=sh com.visualstudio.code
+  $ flatpak run --command=sh co.anysphere.cursor
   $ ls /usr/bin (shared runtime)
   $ ls /app/bin (bundled with this flatpak)
 
@@ -39,7 +39,7 @@ To get support for additional languages or tools within the Flatpak, you have to
 
   $ flatpak install flathub org.freedesktop.Sdk.Extension.dotnet
   $ flatpak install flathub org.freedesktop.Sdk.Extension.golang
-  $ FLATPAK_ENABLE_SDK_EXT=dotnet,golang flatpak run com.visualstudio.code
+  $ FLATPAK_ENABLE_SDK_EXT=dotnet,golang flatpak run co.anysphere.cursor
 
 Similarly for shells and other tools:
 

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/\\/co\\.anysphere\\.cursor\\.yaml$/"
+      ],
+      "matchStrings": [
+        "url: https://downloads.cursor.com/production/(?<currentDigest>[^/]+)/linux/x64/(?<depName>Cursor)-(?<currentValue>[^-]+)-x86_64.AppImage"
+      ],
+      "datasourceTemplate": "custom.cursor"
+    }
+  ],
+  "customDatasources": {
+    "cursor": {
+      "defaultRegistryUrlTemplate": "https://raw.githubusercontent.com/oslook/cursor-ai-downloads/refs/heads/main/version-history.json",
+      "format": "json",
+      "transformTemplates": [
+        "{ \"releases\": $map(versions, function($v) { { \"version\": $v.version, \"sourceUrl\": $v.platforms.\"linux-x64\", \"digest\": $split($v.platforms.\"linux-x64\", '/')[-4] } }) }"
+      ]
+    }
+  },
+  "postUpgradeTasks": {
+    "commands": ["./co.anysphere.cursor/update-checksum.sh"],
+    "fileFilters": ["**/co.anysphere.cursor.yaml"],
+    "executionMode": "update"
+  }
+}

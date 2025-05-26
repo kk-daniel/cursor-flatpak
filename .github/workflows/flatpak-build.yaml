@@ -14,7 +14,6 @@ jobs:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08
       options: --privileged
     env:
-      BRANCH: ${{ github.ref_name }}
       APP_ID: co.anysphere.cursor
     permissions:
       contents: read
@@ -36,12 +35,18 @@ jobs:
           gpg --import --batch repo.private.gpg
           rm repo.private.gpg
 
+      - name: Clean branch name
+        id: clean-branch-name
+        run: |
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          echo "branch=${BRANCH//\//-}" >> $GITHUB_OUTPUT
+
       - name: Build Flatpak
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           bundle: ${{ env.APP_ID }}.flatpak
           manifest-path: co.anysphere.cursor/co.anysphere.cursor.yaml
-          branch: ${{ env.BRANCH }}
+          branch: ${{ steps.clean-branch-name.outputs.branch }}
           gpg-sign: ${{ secrets.GPG_KEY_ID }}
 
       - name: Update repo

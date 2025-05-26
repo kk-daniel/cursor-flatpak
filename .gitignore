@@ -6,3 +6,5 @@
 /builddir
 # Flatpak bundles
 *.flatpak
+# Temporary files
+appimage.tmp

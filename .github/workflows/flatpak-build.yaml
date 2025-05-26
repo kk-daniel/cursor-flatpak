@@ -20,6 +20,8 @@ jobs:
         run: ./co.anysphere.cursor/update-checksum.sh
       - name: Commit changes
         run: |
+          git config --global user.name "renovate[bot]"
+          git config --global user.email "29139614+renovate[bot]@users.noreply.github.com"
           git add co.anysphere.cursor/co.anysphere.cursor.yaml
           git commit --amend --no-edit
           git push -f

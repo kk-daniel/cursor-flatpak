@@ -13,18 +13,31 @@ jobs:
     permissions:
       contents: write
     if: github.event_name == 'pull_request' && github.actor == 'renovate[bot]'
+    outputs:
+      changes_detected: ${{ steps.commit.outputs.changes_detected }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 2
       - name: Update checksums
         run: ./co.anysphere.cursor/update-checksum.sh
-      - name: Commit changes
+      - name: Get last commit message
+        id: last-commit
         run: |
-          git config --global user.name "renovate[bot]"
-          git config --global user.email "29139614+renovate[bot]@users.noreply.github.com"
-          git add co.anysphere.cursor/co.anysphere.cursor.yaml
-          git commit --amend --no-edit
-          git push -f
+          echo "message=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
+          echo "author=$(git log -1 --pretty=\"%an <%ae>\")" >> $GITHUB_OUTPUT
+      - name: Commit changes
+        id: commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_author: ${{ steps.last-commit.outputs.author }}
+          commit_message: ${{ steps.last-commit.outputs.message }}
+          commit_options: '--amend --no-edit'
+          push_options: '--force'
+          skip_fetch: true
+          file_pattern: co.anysphere.cursor/co.anysphere.cursor.yaml
 
   build:
     runs-on: ubuntu-latest
@@ -36,7 +49,10 @@ jobs:
     permissions:
       contents: read
     needs: post-renovate
-    if: always() && needs.post-renovate.result == 'skipped' || needs.post-renovate.result == 'success'
+    if: >-
+      always() &&
+      needs.post-renovate.result == 'skipped' ||
+      (needs.post-renovate.result == 'success' && needs.post-renovate.outputs.changes_detected == 'false')
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -23,10 +23,5 @@
         "{ \"releases\": $map(versions, function($v) { { \"version\": $v.version, \"sourceUrl\": $v.platforms.\"linux-x64\", \"digest\": $split($v.platforms.\"linux-x64\", '/')[-4] } }) }"
       ]
     }
-  },
-  "postUpgradeTasks": {
-    "commands": ["./co.anysphere.cursor/update-checksum.sh"],
-    "fileFilters": ["**/co.anysphere.cursor.yaml"],
-    "executionMode": "update"
   }
 }

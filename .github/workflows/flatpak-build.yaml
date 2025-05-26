@@ -8,6 +8,22 @@ on:
   workflow_dispatch:
 
 jobs:
+  post-renovate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    if: github.event_name == 'pull_request' && github.actor == 'renovate[bot]'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Update checksums
+        run: ./co.anysphere.cursor/update-checksum.sh
+      - name: Commit changes
+        run: |
+          git add co.anysphere.cursor/co.anysphere.cursor.yaml
+          git commit --amend --no-edit
+          git push -f
+
   build:
     runs-on: ubuntu-latest
     container:
@@ -17,6 +33,8 @@ jobs:
       APP_ID: co.anysphere.cursor
     permissions:
       contents: read
+    needs: post-renovate
+    if: always() && needs.post-renovate.result == 'skipped' || needs.post-renovate.result == 'success'
     steps:
       - name: Checkout
         uses: actions/checkout@v4

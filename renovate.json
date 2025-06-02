@@ -3,6 +3,14 @@
   "extends": [
     "config:recommended"
   ],
+  "packageRules": [
+    {
+      "description": "Cursor",
+      "groupName": "cursor",
+      "matchPackageNames": ["Cursor"],
+      "automerge": true
+    }
+  ],
   "customManagers": [
     {
       "customType": "regex",

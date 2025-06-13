@@ -147,11 +147,7 @@ jobs:
             {
               "summary": "${{ (steps.build-flatpak.conclusion == 'success' && steps.save-repo.conclusion == 'skipped' && 'failure' ) || (steps.build-flatpak.conclusion == 'success' && steps.save-repo.conclusion) || steps.build-flatpak.conclusion }}",
               "text_description":
-                "Build flatpak: ${steps.build-flatpak.conclusion}
-                Update repo: ${steps.update-repo.conclusion}
-                Init github pages: ${steps.init-github-pages.conclusion}
-                Save repo: ${steps.save-repo.conclusion}
-                "
+                "Build flatpak: ${steps.build-flatpak.conclusion}\nUpdate repo: ${steps.update-repo.conclusion}\nInit github pages: ${steps.init-github-pages.conclusion}\nSave repo: ${steps.save-repo.conclusion}"
             }
 
 

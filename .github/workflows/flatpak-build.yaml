@@ -36,7 +36,6 @@ jobs:
           commit_message: ${{ steps.last-commit.outputs.message }}
           commit_options: '--amend --no-edit'
           push_options: '--force'
-          skip_fetch: true
           file_pattern: co.anysphere.cursor/co.anysphere.cursor.yaml
 
   build:

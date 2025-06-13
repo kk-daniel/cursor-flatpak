@@ -37,6 +37,11 @@ jobs:
           commit_options: '--amend --no-edit'
           push_options: '--force'
           file_pattern: co.anysphere.cursor/co.anysphere.cursor.yaml
+      - name: Trigger build
+        uses: benc-uk/workflow-dispatch@v1.2.4
+        with:
+          workflow: ${{ github.workflow }}
+          ref: ${{ github.head_ref }}
 
   build:
     runs-on: ubuntu-latest
@@ -50,18 +55,10 @@ jobs:
     needs: post-renovate
     if: >-
       always() &&
-      needs.post-renovate.result == 'skipped' ||
-      needs.post-renovate.result == 'success'
+      needs.post-renovate.result == 'skipped'
     steps:
       - name: Checkout (main)
         uses: actions/checkout@v4
-        if: github.event_name != 'pull_request'
-
-      - name: Checkout (PR)
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-        if: github.event_name == 'pull_request'
 
       - name: Setup GPG
         env:

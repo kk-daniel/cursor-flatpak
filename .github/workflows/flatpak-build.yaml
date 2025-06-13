@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     if: github.event_name == 'pull_request' && github.actor == 'renovate[bot]'
     outputs:
       changes_detected: ${{ steps.commit.outputs.changes_detected }}

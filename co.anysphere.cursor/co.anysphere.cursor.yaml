@@ -42,19 +42,62 @@ cleanup:
   - '*.a'
   - '*.la'
 modules:
+  - name: libusb
+    config-opts:
+      - "--disable-static"
+    cleanup:
+      - "/lib/*.la"
+      - "/lib/pkgconfig"
+      - "/include"
+    sources:
+      - type: "archive"
+        url: "https://github.com/libusb/libusb/releases/download/v1.0.27/libusb-1.0.27.tar.bz2"
+        sha256: "ffaa41d741a8a3bee244ac8e54a72ea05bf2879663c098c82fc5757853441575"
+    post-install:
+      - "install -Dm644 COPYING ${FLATPAK_DEST}/share/licenses/libusb/COPYING"
+
+  # Provide libsecret without gcrypt, forcing it to use the D-Bus backend
+  # https://github.com/flathub/org.signal.Signal/pull/756/commits/2caf105b18f906e7707f67b3cf7384a21f461564
+  - name: libsecret
+    buildsystem: meson
+    config-opts:
+      - -Dmanpage=false
+      - -Dcrypto=disabled
+      - -Dvapi=false
+      - -Dgtk_doc=false
+      - -Dintrospection=false
+      - -Dbash_completion=disabled
+    cleanup:
+      - /bin
+      - /include
+      - /lib/pkgconfig
+      - /share/man
+    sources:
+      - type: archive
+        url: https://download.gnome.org/sources/libsecret/0.21/libsecret-0.21.7.tar.xz
+        sha256: 6b452e4750590a2b5617adc40026f28d2f4903de15f1250e1d1c40bfd68ed55e
+        x-checker-data:
+          type: gnome
+          name: libsecret
+          stable-only: true
+
   - name: cursor
     buildsystem: simple
     build-commands:
       - install -Dm755 cursor.sh /app/bin/cursor
-      - install -Dm755 stub_sandbox /app/bin/stub_sandbox
       - |
         for s in 22 32 48 64 128 256 512; do
           install -Dm644 ${s}.png /app/share/icons/hicolor/${s}x${s}/apps/${FLATPAK_ID}.png
         done
-      - install -Dm644 ${FLATPAK_ID}.desktop -t /app/share/applications/
+      # - install -Dm644 ${FLATPAK_ID}.metainfo.xml -t /app/share/metainfo
+      - install -Dm644 ${FLATPAK_ID}.desktop -t /app/share/applications
+      - install -Dm644 ${FLATPAK_ID}-url-handler.desktop -t /app/share/applications
       - install -Dm644 npmrc -t /app/etc
       - install -Dm644 flatpak-warning.txt -t /app/share/cursor
       - install -D apply_extra -t /app/bin
+      - cp /usr/bin/ar -t /app/bin
+      - ARCH_TRIPLE=$(gcc --print-multiarch) && cp /usr/lib/${ARCH_TRIPLE}/libbfd-*.so /app/lib
+      - ARCH_TRIPLE=$(gcc --print-multiarch) && ln -s /usr/lib/${ARCH_TRIPLE}/libtinfo.so/app/lib/libtinfo.so.5
       - mkdir /app/tools
     sources:
       - type: extra-data
@@ -70,13 +113,6 @@ modules:
           #- rm -f squashfs-root/{.DirIcon,AppRun,cursor.desktop,co.anysphere.cursor.png}
           - mv squashfs-root/usr/share/cursor cursor
           - rm -rf squashfs-root
-          - install -Dm755 /app/bin/stub_sandbox chrome-sandbox
-      - type: script
-        dest-filename: stub_sandbox
-        commands:
-          - |
-            echo Stub sandbox ignoring command: $@
-            exit 1
       - type: file
         path: cursor.sh
       - type: file
@@ -85,6 +121,8 @@ modules:
         path: npmrc
       - type: file
         path: co.anysphere.cursor.desktop
+      - type: file
+        path: co.anysphere.cursor-url-handler.desktop
       - type: file
         path: icons/22.png
       - type: file
@@ -103,18 +141,45 @@ modules:
         path: icons/512.png
     modules:
       - ./modules/unappimage/unappimage.json
+
+  - name: kerberos
+    subdir: src
+    post-install:
+      - install -Dm644 ../krb5.conf /app/etc/krb5.conf
+    sources:
+      - type: archive
+        url: https://kerberos.org/dist/krb5/1.20/krb5-1.20.tar.gz
+        sha256: 7e022bdd3c851830173f9faaa006a230a0e0fdad4c953e85bff4bf0da036e12f
+      - type: file
+        path: krb5.conf
+
   - name: host-spawn
     buildsystem: simple
     build-commands:
       - install -Dm755 host-spawn /app/bin/host-spawn
     sources:
       - type: file
-        url: https://github.com/1player/host-spawn/releases/download/1.5.0/host-spawn-x86_64
-        sha256: dbf67e7e111c4fe1edb0c642cbb4193064ca5b384aeb1054fc2befba6ed88b83
+        url: https://github.com/1player/host-spawn/releases/download/v1.6.1/host-spawn-x86_64
+        sha256: 733746ab498e07d065cbecf80bacd447eb21846d1462e8fe23fdd9d9dc977b50
         dest-filename: host-spawn
         only-arches: [x86_64]
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/1player/host-spawn/releases/latest
+          version-query: .tag_name
+          timestamp-query: .published_at
+          url-query: '"https://github.com/1player/host-spawn/releases/download/" +
+            $version + "/host-spawn-x86_64"'
+
       - type: file
-        url: https://github.com/1player/host-spawn/releases/download/1.5.0/host-spawn-aarch64
-        sha256: c42c12be6cdd83e374b847bec836659fb45231215797777c9ee1c9c0ae9e3783
+        url: https://github.com/1player/host-spawn/releases/download/v1.6.1/host-spawn-aarch64
+        sha256: 71b7744a4d0b29279523cc0f0ed1a7af5e9555510bd9e6d4685391b59faefaac
         dest-filename: host-spawn
         only-arches: [aarch64]
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/1player/host-spawn/releases/latest
+          version-query: .tag_name
+          timestamp-query: .published_at
+          url-query: '"https://github.com/1player/host-spawn/releases/download/" +
+            $version + "/host-spawn-aarch64"'

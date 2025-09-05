@@ -102,8 +102,8 @@ modules:
     sources:
       - type: extra-data
         filename: appimage
-        url: https://downloads.cursor.com/production/6aa7b3af0d578b9a3aa3ab443571e1a51ebb4e83/linux/x64/Cursor-1.5.7-x86_64.AppImage
-        sha256: d5b4a7753187f02e156a767ce8c06c9393d758fb3a7308e716f7ee0023830af3
+        url: https://downloads.cursor.com/production/7ad52fff14641ec6373a31c19463856cace32640/linux/x64/Cursor-1.5.10-x86_64.AppImage
+        sha256: 0c3ac691b0b8bcf1fc50c0184bd5e09b13c1480db0cef3c151dae9e6f500af58
         size: 194487488
       - type: script
         dest-filename: apply_extra

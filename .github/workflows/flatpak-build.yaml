@@ -70,6 +70,7 @@ jobs:
         with:
           name: flatpak-repo
           path: repo
+          branch: main
           workflow_conclusion: success
           if_no_artifact_found: ignore
 

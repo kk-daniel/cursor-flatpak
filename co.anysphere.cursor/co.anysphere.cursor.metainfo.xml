@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>co.anysphere.cursor</id>
+  <metadata_license>MIT</metadata_license>
+  <project_license>LicenseRef-proprietary</project_license>
+  <name>Cursor</name>
+  <summary>The AI Code Editor</summary>
+  <description>
+    <p>
+      Cursor is an AI-powered code editor built on the foundation of VS Code.
+      It features intelligent code completion, chat with AI about your codebase,
+      and advanced AI-powered editing capabilities to boost your productivity.
+    </p>
+    <p>
+      Key features include:
+    </p>
+    <ul>
+      <li>AI-powered code completion and suggestions</li>
+      <li>Chat interface to discuss code with AI</li>
+      <li>Intelligent code editing and refactoring</li>
+      <li>Built on VS Code with familiar interface</li>
+      <li>Support for multiple programming languages</li>
+      <li>Advanced debugging capabilities</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">co.anysphere.cursor.desktop</launchable>
+  <url type="homepage">https://cursor.com</url>
+  <url type="help">https://docs.cursor.com</url>
+  <url type="contact">https://cursor.com/contact</url>
+  <developer_name>Anysphere</developer_name>
+  <categories>
+    <category>Development</category>
+    <category>TextEditor</category>
+    <category>IDE</category>
+  </categories>
+  <content_rating type="oars-1.1">
+    <content_attribute id="social-info">moderate</content_attribute>
+  </content_rating>
+  <releases>
+    <release version="1.5.11" date="2025-09-05"/>
+  </releases>
+</component>

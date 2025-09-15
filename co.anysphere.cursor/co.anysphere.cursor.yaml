@@ -89,7 +89,7 @@ modules:
         for s in 22 32 48 64 128 256 512; do
           install -Dm644 ${s}.png /app/share/icons/hicolor/${s}x${s}/apps/${FLATPAK_ID}.png
         done
-      # - install -Dm644 ${FLATPAK_ID}.metainfo.xml -t /app/share/metainfo
+      - install -Dm644 ${FLATPAK_ID}.metainfo.xml -t /app/share/metainfo
       - install -Dm644 ${FLATPAK_ID}.desktop -t /app/share/applications
       - install -Dm644 ${FLATPAK_ID}-url-handler.desktop -t /app/share/applications
       - install -Dm644 npmrc -t /app/etc
@@ -119,6 +119,8 @@ modules:
         path: flatpak-warning.txt
       - type: file
         path: npmrc
+      - type: file
+        path: co.anysphere.cursor.metainfo.xml
       - type: file
         path: co.anysphere.cursor.desktop
       - type: file

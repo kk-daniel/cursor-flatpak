@@ -26,10 +26,10 @@
   ],
   "customDatasources": {
     "cursor": {
-      "defaultRegistryUrlTemplate": "https://raw.githubusercontent.com/oslook/cursor-ai-downloads/refs/heads/main/version-history.json",
+      "defaultRegistryUrlTemplate": "https://cursor.com/api/download?platform=linux-x64&releaseTrack=stable",
       "format": "json",
       "transformTemplates": [
-        "{ \"releases\": $map(versions, function($v) { { \"version\": $v.version, \"sourceUrl\": $v.platforms.\"linux-x64\", \"digest\": $split($v.platforms.\"linux-x64\", '/')[-4] } }) }"
+        "{ \"releases\": [{ \"version\": $$.version, \"sourceUrl\": $$.downloadUrl, \"digest\": $$.commitSha }] }"
       ]
     }
   }

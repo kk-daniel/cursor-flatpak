@@ -184,11 +184,10 @@ jobs:
     permissions:
       contents: write
     needs: build
-    # Test auto release logic
-    #if: github.ref == 'refs/heads/main' && github.ref_type != 'tag'
     if: >-
       always() && !cancelled() &&
       needs.build.result == 'success' &&
+      github.ref == 'refs/heads/main' &&
       github.ref_type != 'tag'
     steps:
       - name: Checkout
@@ -198,7 +197,7 @@ jobs:
 
       - name: Extract version
         id: extract-version
-        #if: github.ref == 'refs/heads/main' && github.ref_type != 'tag'
+        if: github.ref == 'refs/heads/main' && github.ref_type != 'tag'
         run: |
           set -e
 
@@ -217,13 +216,12 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
           # Check if version was updated on this commit
-          #if git diff HEAD~1..HEAD ${APP_ID}/${APP_ID}.yaml | grep -A 3 'filename: appimage' | grep -q '^+\s*url: '
-          #then
-          #  echo "version-changed=true" >> $GITHUB_OUTPUT
-          #else
-          #  echo "version-changed=false" >> $GITHUB_OUTPUT
-          #fi
-          echo "version-changed=true" >> $GITHUB_OUTPUT
+          if git diff HEAD~1..HEAD ${APP_ID}/${APP_ID}.yaml | grep -A 3 'filename: appimage' | grep -q '^+\s*url: '
+          then
+            echo "version-changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "version-changed=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Create release
         if: steps.extract-version.outcome == 'success' && steps.extract-version.outputs.version-changed == 'true'
@@ -257,5 +255,5 @@ jobs:
           files: "*.flatpak"
           overwrite_files: true
           prerelease: false
-      #- name: Deploy github pages
-      #  uses: actions/deploy-pages@v4
+      - name: Deploy github pages
+        uses: actions/deploy-pages@v4

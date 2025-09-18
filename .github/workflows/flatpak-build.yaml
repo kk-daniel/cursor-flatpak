@@ -184,7 +184,9 @@ jobs:
     permissions:
       contents: write
     needs: build
-    if: github.ref == 'refs/heads/main' && github.ref_type != 'tag'
+    # Test auto release logic
+    #if: github.ref == 'refs/heads/main' && github.ref_type != 'tag'
+    if: github.ref_type != 'tag'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -251,5 +253,5 @@ jobs:
           files: "*.flatpak"
           overwrite_files: true
           prerelease: false
-      - name: Deploy github pages
-        uses: actions/deploy-pages@v4
+      #- name: Deploy github pages
+      #  uses: actions/deploy-pages@v4

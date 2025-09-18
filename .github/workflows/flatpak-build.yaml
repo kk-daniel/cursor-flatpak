@@ -57,7 +57,7 @@ jobs:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08
       options: --privileged
     permissions:
-      contents: write
+      contents: read
       checks: write
     needs: post-renovate
     if: >-

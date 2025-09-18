@@ -82,7 +82,7 @@ jobs:
       - name: Fix reppository directories
         if: steps.download-artifact.outcome == 'success'
         run: |
-          if [ ! -d repo ]; then
+          if [ -d repo ]; then
             mkdir -p repo/extensions repo/state repo/refs/mirrors repo/refs/remotes
           fi
 

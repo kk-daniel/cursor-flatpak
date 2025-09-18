@@ -2,7 +2,7 @@
 <component type="desktop">
   <id>co.anysphere.cursor</id>
   <metadata_license>MIT</metadata_license>
-  <project_license>LicenseRef-proprietary</project_license>
+  <project_license>LicenseRef-proprietary=https://www.cursor.so/license.txt</project_license>
   <name>Cursor</name>
   <summary>The AI Code Editor</summary>
   <description>
@@ -23,6 +23,11 @@
       <li>Advanced debugging capabilities</li>
     </ul>
   </description>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://cursor.com/docs-static/images/ide.png?w=1920&amp;q=75</image>
+    </screenshot>
+  </screenshots>
   <launchable type="desktop-id">co.anysphere.cursor.desktop</launchable>
   <url type="homepage">https://cursor.com</url>
   <url type="help">https://docs.cursor.com</url>

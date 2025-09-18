@@ -65,7 +65,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download previous repository (main branch only)
-        if: github.ref == 'refs/heads/main'
+        #if: github.ref == 'refs/heads/main'
         uses: dawidd6/action-download-artifact@v3
         with:
           name: flatpak-repo
@@ -102,6 +102,9 @@ jobs:
           manifest-path: co.anysphere.cursor/co.anysphere.cursor.yaml
           branch: ${{ steps.clean-branch-name.outputs.branch }}
           gpg-sign: ${{ secrets.GPG_KEY_ID }}
+
+      - name: Check repo contents
+        run: find repo -type f
 
       - name: Update repo
         id: update-repo

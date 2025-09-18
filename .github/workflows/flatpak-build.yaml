@@ -203,7 +203,7 @@ jobs:
           set -e
 
           # Extract version from the URL in the manifest
-          SPEC="$(grep -A 3 'filename: appimage' ${APP_ID}.yaml)"
+          SPEC="$(grep -A 3 'filename: appimage' ${APP_ID}/${APP_ID}.yaml)"
           URL="$(echo "$SPEC" | grep -o 'url: .*' | cut -d' ' -f2)"
 
           # Extract version from URL (e.g., Cursor-1.6.14-x86_64.AppImage -> 1.6.14)

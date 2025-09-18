@@ -70,7 +70,7 @@ jobs:
       - name: Download previous repository (tags only)
         id: download-artifact
         if: github.ref_type == 'tag'
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v11
         with:
           name: flatpak-repo
           path: repo

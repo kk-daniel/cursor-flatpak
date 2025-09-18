@@ -179,10 +179,24 @@ jobs:
                 "Build flatpak: ${{ steps.build-flatpak.conclusion }}\nUpdate repo: ${{ steps.update-repo.conclusion }}\nInit github pages: ${{ steps.init-github-pages.conclusion }}\nSave repo: ${{ steps.save-repo.conclusion }}"
             }
 
+  auto-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.ref_type != 'tag'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
       - name: Extract version
         id: extract-version
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && github.ref_type != 'tag'
         run: |
+          set -e
+
           # Extract version from the URL in the manifest
           SPEC="$(grep -A 3 'filename: appimage' ${APP_ID}.yaml)"
           URL="$(echo "$SPEC" | grep -o 'url: .*' | cut -d' ' -f2)"
@@ -197,14 +211,23 @@ jobs:
 
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
+          # Check if version was updated on this commit
+          if git diff HEAD~1..HEAD ${APP_ID}/${APP_ID}.yaml | grep -A 3 'filename: appimage' | grep -q '^+\s*url: '
+          then
+            echo "version-changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "version-changed=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Create release
-        if: github.ref == 'refs/heads/main'
+        if: steps.extract-version.outcome == 'success' && steps.extract-version.outputs.version-changed == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag: cursor-${{ steps.extract-version.outputs.version }}
           files: "*.flatpak"
           overwrite_files: true
           body: "Cursor ${{ steps.extract-version.outputs.version }}"
+          prerelease: true
 
   deploy:
     if: >-
@@ -218,5 +241,15 @@ jobs:
       pages: write
       id-token: write
     steps:
+      - name: Download flatpak artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*.flatpak"
+      - name: Publish flatpak
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "*.flatpak"
+          overwrite_files: true
+          prerelease: false
       - name: Deploy github pages
         uses: actions/deploy-pages@v4

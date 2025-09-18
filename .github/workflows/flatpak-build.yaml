@@ -229,7 +229,7 @@ jobs:
         if: steps.extract-version.outcome == 'success' && steps.extract-version.outputs.version-changed == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag: cursor-${{ steps.extract-version.outputs.version }}
+          tag_name: cursor-${{ steps.extract-version.outputs.version }}
           files: "*.flatpak"
           overwrite_files: true
           body: "Cursor ${{ steps.extract-version.outputs.version }}"

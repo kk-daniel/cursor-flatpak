@@ -76,12 +76,15 @@ jobs:
           path: repo
           branch: main
           workflow_conclusion: success
+          search_artifacts: true
           if_no_artifact_found: ignore
 
       - name: Fix reppository directories
         if: steps.download-artifact.outcome == 'success'
         run: |
-          mkdir -p repo/extensions repo/state repo/refs/mirrors repo/refs/remotes
+          if [ ! -d repo ]; then
+            mkdir -p repo/extensions repo/state repo/refs/mirrors repo/refs/remotes
+          fi
 
       - name: Setup GPG
         env:

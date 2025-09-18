@@ -3,9 +3,14 @@ name: Build Flatpak
 on:
   push:
     branches: [ main ]
+    tags:
+      - "cursor-*"
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+
+env:
+  APP_ID: co.anysphere.cursor
 
 jobs:
   post-renovate:
@@ -23,9 +28,9 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 2
       - name: Update checksums
-        run: ./co.anysphere.cursor/update-checksum.sh
+        run: ./${APP_ID}/update-checksum.sh
       - name: Update metainfo
-        run: ./co.anysphere.cursor/update-metainfo.sh
+        run: ./${APP_ID}/update-metainfo.sh
       - name: Get last commit message
         id: last-commit
         run: |
@@ -39,7 +44,7 @@ jobs:
           commit_message: ${{ steps.last-commit.outputs.message }}
           commit_options: '--amend --no-edit'
           push_options: '--force'
-          file_pattern: co.anysphere.cursor/co.anysphere.cursor.yaml co.anysphere.cursor/co.anysphere.cursor.metainfo.xml
+          file_pattern: ${{ env.APP_ID }}/${{ env.APP_ID }}.yaml ${{ env.APP_ID }}/${{ env.APP_ID }}.metainfo.xml
       - name: Trigger build
         uses: benc-uk/workflow-dispatch@v1.2.4
         with:
@@ -51,22 +56,20 @@ jobs:
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08
       options: --privileged
-    env:
-      APP_ID: co.anysphere.cursor
     permissions:
       contents: read
       checks: write
     needs: post-renovate
     if: >-
-      always() &&
+      always() && !cancelled() &&
       needs.post-renovate.result == 'skipped'
     steps:
-      - name: Checkout (main)
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download previous repository (main branch only)
+      - name: Download previous repository (tags only)
         id: download-artifact
-        if: github.ref == 'refs/heads/main'
+        if: github.ref_type == 'tag'
         uses: dawidd6/action-download-artifact@v3
         with:
           name: flatpak-repo
@@ -105,7 +108,7 @@ jobs:
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           bundle: ${{ env.APP_ID }}.flatpak
-          manifest-path: co.anysphere.cursor/co.anysphere.cursor.yaml
+          manifest-path: ${{ env.APP_ID }}/${{ env.APP_ID }}.yaml
           branch: ${{ steps.clean-branch-name.outputs.branch }}
           gpg-sign: ${{ secrets.GPG_KEY_ID }}
 
@@ -141,21 +144,21 @@ jobs:
               <p>To install Cursor, run the following commands:</p>
               <pre>
                 flatpak remote-add --if-not-exists cursor-flatpak https://kk-daniel.github.io/cursor-flatpak/cursor.flatpakrepo
-                flatpak install co.anysphere.cursor
+                flatpak install ${APP_ID}
               </pre>
             </body>
           </html>
           EOF
 
-      - name: Upload repository as artifact (main branch only)
-        if: github.ref == 'refs/heads/main'
+      - name: Upload repository as artifact (tags only)
+        if: github.ref_type == 'tag'
         uses: actions/upload-artifact@v4
         with:
           name: flatpak-repo
           path: repo/
           retention-days: 30
 
-      - name: Save repo
+      - name: Save pages artifact
         id: save-repo
         uses: actions/upload-pages-artifact@v3
         with:
@@ -176,11 +179,64 @@ jobs:
                 "Build flatpak: ${{ steps.build-flatpak.conclusion }}\nUpdate repo: ${{ steps.update-repo.conclusion }}\nInit github pages: ${{ steps.init-github-pages.conclusion }}\nSave repo: ${{ steps.save-repo.conclusion }}"
             }
 
+  auto-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs: build
+    if: >-
+      always() && !cancelled() &&
+      needs.build.result == 'success' &&
+      github.ref == 'refs/heads/main' &&
+      github.ref_type != 'tag'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Extract version
+        id: extract-version
+        if: github.ref == 'refs/heads/main' && github.ref_type != 'tag'
+        run: |
+          set -e
+
+          # Extract version from the URL in the manifest
+          SPEC="$(grep -A 3 'filename: appimage' ${APP_ID}/${APP_ID}.yaml)"
+          URL="$(echo "$SPEC" | grep -o 'url: .*' | cut -d' ' -f2)"
+
+          # Extract version from URL (e.g., Cursor-1.6.14-x86_64.AppImage -> 1.6.14)
+          VERSION="$(echo "$URL" | sed -n 's/.*Cursor-\([0-9]\+\.[0-9]\+\.[0-9]\+\)-.*/\1/p')"
+
+          if [ -z "$VERSION" ]; then
+            echo "Error: Could not extract version from URL: $URL"
+            exit 1
+          fi
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+          # Check if version was updated on this commit
+          if git diff HEAD~1..HEAD ${APP_ID}/${APP_ID}.yaml | grep -A 3 'filename: appimage' | grep -q '^+\s*url: '
+          then
+            echo "version-changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "version-changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create release
+        if: steps.extract-version.outcome == 'success' && steps.extract-version.outputs.version-changed == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: cursor-${{ steps.extract-version.outputs.version }}
+          files: "*.flatpak"
+          overwrite_files: true
+          body: "Cursor ${{ steps.extract-version.outputs.version }}"
+          prerelease: true
 
   deploy:
     if: >-
-      always() &&
-      github.ref == 'refs/heads/main' &&
+      always() && !cancelled() &&
+      github.ref_type == 'tag' &&
       needs.build.result == 'success'
     runs-on: ubuntu-latest
     needs: build
@@ -189,5 +245,15 @@ jobs:
       pages: write
       id-token: write
     steps:
+      - name: Download flatpak artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*.flatpak"
+      - name: Publish flatpak
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "*.flatpak"
+          overwrite_files: true
+          prerelease: false
       - name: Deploy github pages
         uses: actions/deploy-pages@v4

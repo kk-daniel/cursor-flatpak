@@ -65,6 +65,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download previous repository (main branch only)
+        id: download-artifact
         #if: github.ref == 'refs/heads/main'
         uses: dawidd6/action-download-artifact@v3
         with:
@@ -73,6 +74,11 @@ jobs:
           branch: main
           workflow_conclusion: success
           if_no_artifact_found: ignore
+
+      - name: Fix reppository directories
+        if: steps.download-artifact.outcome == 'success'
+        run: |
+          mkdir -p repo/extensions repo/state repo/refs/mirrors repo/refs/remotes
 
       - name: Setup GPG
         env:

@@ -170,8 +170,9 @@ jobs:
 
       - name: Clean branch name
         id: clean-branch-name
+        env:
+          BRANCH: ${{ (github.ref_type == 'tag' && 'main') || github.head_ref || github.ref_name }}
         run: |
-          BRANCH="${{ github.head_ref || github.ref_name }}"
           echo "branch=${BRANCH//\//-}" >> $GITHUB_OUTPUT
 
       - name: Build Flatpak

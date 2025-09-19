@@ -135,8 +135,7 @@ jobs:
           fi
 
       - name: Restore repository
-        # Test restore without tag
-        #if: github.ref_type == 'tag'
+        if: github.ref_type == 'tag'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}

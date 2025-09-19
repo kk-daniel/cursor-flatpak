@@ -51,6 +51,50 @@ jobs:
           workflow: ${{ github.workflow }}
           ref: ${{ github.head_ref }}
 
+  extract-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.extract-version.outputs.version }}
+      version-changed: ${{ steps.extract-version.outputs.version-changed }}
+    needs: post-renovate
+    if: >-
+      always() && !cancelled() &&
+      needs.post-renovate.result == 'skipped'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Extract version
+        id: extract-version
+        run: |
+          set -e
+
+          # Extract version from the URL in the manifest
+          SPEC="$(grep -A 3 'filename: appimage' ${APP_ID}/${APP_ID}.yaml)"
+          URL="$(echo "$SPEC" | grep -o 'url: .*' | cut -d' ' -f2)"
+
+          # Extract version from URL (e.g., Cursor-1.6.14-x86_64.AppImage -> 1.6.14)
+          VERSION="$(echo "$URL" | sed -n 's/.*Cursor-\([0-9]\+\.[0-9]\+\.[0-9]\+\)-.*/\1/p')"
+
+          if [ -z "$VERSION" ]; then
+            echo "Error: Could not extract version from URL: $URL"
+            exit 1
+          fi
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+          # Check if version was updated on this commit
+          if git diff HEAD~1..HEAD ${APP_ID}/${APP_ID}.yaml | grep -A 3 'filename: appimage' | grep -q '^+\s*url: '
+          then
+            echo "version-changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "version-changed=false" >> $GITHUB_OUTPUT
+          fi
+
   build:
     runs-on: ubuntu-latest
     container:
@@ -59,39 +103,23 @@ jobs:
     permissions:
       contents: read
       checks: write
-    needs: post-renovate
+    needs: extract-version
     if: >-
       always() && !cancelled() &&
-      needs.post-renovate.result == 'skipped'
+      needs.extract-version.result == 'success'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Download previous repository (tags only)
-        id: download-artifact
-        if: github.ref_type == 'tag'
-        uses: dawidd6/action-download-artifact@v3
-        with:
-          name: flatpak-repo
-          path: repo
-          branch: main
-          workflow_conclusion: success
-          search_artifacts: true
-          if_no_artifact_found: ignore
-
-      - name: Fix reppository directories
-        if: steps.download-artifact.outcome == 'success'
-        run: |
-          if [ -d repo ]; then
-            mkdir -p repo/extensions repo/state repo/refs/mirrors repo/refs/remotes
-          fi
 
       - name: Setup GPG
         env:
           GPG_KEY_GREP: ${{ secrets.GPG_KEY_GREP }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
         run: |
+          set -e
+
           gpg --list-keys --with-keygrip
           echo "allow-preset-passphrase" >> ~/.gnupg/gpg-agent.conf
           gpg-connect-agent reloadagent /bye
@@ -99,27 +127,70 @@ jobs:
           echo "$GPG_PRIVATE_KEY" > repo.private.gpg
           gpg --import --batch repo.private.gpg
           rm repo.private.gpg
+          rm -f repo.gpg
+          gpg --export "$GPG_KEY_ID" > repo.gpg
+          if [ ! -f repo.gpg ]; then
+            echo "Error: Could not export GPG key" >&2
+            exit 1
+          fi
+
+      - name: Restore repository
+        if: github.ref_type == 'tag'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+        run: |
+          set -e
+
+          # Check if repository exists
+          BASE_URL="$(gh api /repos/${GITHUB_REPOSITORY}/pages --jq .html_url)"
+          curl -o/dev/null -sf "${BASE_URL}summary" || {
+            echo "Repository does not exist" >&2
+            exit 0
+          }
+
+          # Mirror repository
+          ostree --repo=repo init --mode=archive
+          ostree --repo=repo remote add cursor-flatpak "${BASE_URL%/}" --gpg-import=repo.gpg
+          ostree --repo=repo pull --mirror cursor-flatpak --depth=-1
+
+          # Generate summary
+          flatpak build-update-repo \
+            --gpg-sign="$GPG_KEY_ID" \
+            --generate-static-deltas \
+            --prune \
+            repo
+
+          # Restore config
+          curl -o repo/config -sf "${BASE_URL}config"
+          # Remove extra files
+          rm -rf repo/*.trustedkeys.gpg repo/extensions repo/state repo/tmp
 
       - name: Clean branch name
         id: clean-branch-name
+        env:
+          BRANCH: ${{ (github.ref_type == 'tag' && 'main') || github.head_ref || github.ref_name }}
         run: |
-          BRANCH="${{ github.head_ref || github.ref_name }}"
           echo "branch=${BRANCH//\//-}" >> $GITHUB_OUTPUT
 
       - name: Build Flatpak
         id: build-flatpak
-        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        uses: jokujossai/flatpak-github-actions/flatpak-builder@c21541c58825c44b4116bde213e0b0418b4b44ce
         with:
           bundle: ${{ env.APP_ID }}.flatpak
           manifest-path: ${{ env.APP_ID }}/${{ env.APP_ID }}.yaml
           branch: ${{ steps.clean-branch-name.outputs.branch }}
           gpg-sign: ${{ secrets.GPG_KEY_ID }}
+          subject: "Cursor ${{ needs.extract-version.outputs.version }}"
 
       - name: Update repo
         id: update-repo
+        env:
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
         run: |
           flatpak build-update-repo \
-            --gpg-sign="${{ secrets.GPG_KEY_ID }}" \
+            --gpg-sign="$GPG_KEY_ID" \
             --generate-static-deltas \
             --prune \
             repo
@@ -127,12 +198,16 @@ jobs:
       - name: Initialize github-pages
         id: init-github-pages
         run: |
+          set -e
+
+          gpg_base64="$(gpg --export "$GPG_KEY_ID" | base64 -w 0)"
+
           cat <<EOF > repo/cursor.flatpakrepo
           [Flatpak Repo]
           Title=Cursor
           Url=https://kk-daniel.github.io/cursor-flatpak
           Homepage=https://cursor.com
-          GPGKey=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
+          GPGKey=$gpg_base64
           EOF
 
           cat <<EOF > repo/index.html
@@ -186,54 +261,21 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    needs: build
+    needs: [build, extract-version]
     if: >-
       always() && !cancelled() &&
       needs.build.result == 'success' &&
       github.ref == 'refs/heads/main' &&
-      github.ref_type != 'tag'
+      github.ref_type != 'tag' &&
+      needs.extract-version.outputs.version-changed == 'true'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Extract version
-        id: extract-version
-        if: github.ref == 'refs/heads/main' && github.ref_type != 'tag'
-        run: |
-          set -e
-
-          # Extract version from the URL in the manifest
-          SPEC="$(grep -A 3 'filename: appimage' ${APP_ID}/${APP_ID}.yaml)"
-          URL="$(echo "$SPEC" | grep -o 'url: .*' | cut -d' ' -f2)"
-
-          # Extract version from URL (e.g., Cursor-1.6.14-x86_64.AppImage -> 1.6.14)
-          VERSION="$(echo "$URL" | sed -n 's/.*Cursor-\([0-9]\+\.[0-9]\+\.[0-9]\+\)-.*/\1/p')"
-
-          if [ -z "$VERSION" ]; then
-            echo "Error: Could not extract version from URL: $URL"
-            exit 1
-          fi
-
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-
-          # Check if version was updated on this commit
-          if git diff HEAD~1..HEAD ${APP_ID}/${APP_ID}.yaml | grep -A 3 'filename: appimage' | grep -q '^+\s*url: '
-          then
-            echo "version-changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "version-changed=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Create release
-        if: steps.extract-version.outcome == 'success' && steps.extract-version.outputs.version-changed == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: cursor-${{ steps.extract-version.outputs.version }}
+          tag_name: cursor-${{ needs.extract-version.outputs.version }}
           files: "*.flatpak"
           overwrite_files: true
-          body: "Cursor ${{ steps.extract-version.outputs.version }}"
+          body: "Cursor ${{ needs.extract-version.outputs.version }}"
           prerelease: true
 
   deploy:

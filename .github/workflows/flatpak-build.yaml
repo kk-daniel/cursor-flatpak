@@ -142,7 +142,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
         run: |
-          set -ex
+          set -e
 
           # Check if repository exists
           BASE_URL="$(gh api /repos/${GITHUB_REPOSITORY}/pages --jq .html_url)"
@@ -180,7 +180,7 @@ jobs:
           manifest-path: ${{ env.APP_ID }}/${{ env.APP_ID }}.yaml
           branch: ${{ steps.clean-branch-name.outputs.branch }}
           gpg-sign: ${{ secrets.GPG_KEY_ID }}
-          subjet: "Cursor ${{ needs.extract-version.outputs.version }}"
+          subject: "Cursor ${{ needs.extract-version.outputs.version }}"
 
       - name: Update repo
         id: update-repo
@@ -196,12 +196,16 @@ jobs:
       - name: Initialize github-pages
         id: init-github-pages
         run: |
+          set -e
+
+          gpg_base64="$(gpg --export "$GPG_KEY_ID" | base64 -w 0)"
+
           cat <<EOF > repo/cursor.flatpakrepo
           [Flatpak Repo]
           Title=Cursor
           Url=https://kk-daniel.github.io/cursor-flatpak
           Homepage=https://cursor.com
-          GPGKey=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
+          GPGKey=$gpg_base64
           EOF
 
           cat <<EOF > repo/index.html

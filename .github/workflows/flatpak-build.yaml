@@ -136,7 +136,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
         run: |
-          set -e
+          set -ex
 
           # Check if repository exists
           BASE_URL="$(gh api /repos/${GITHUB_REPOSITORY}/pages --jq .html_url)"

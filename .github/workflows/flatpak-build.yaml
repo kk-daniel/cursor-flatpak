@@ -145,10 +145,6 @@ jobs:
             exit 0
           }
 
-          # Install ostree
-          sudo apt-get update
-          sudo apt-get install ostree
-
           # Mirror repository
           ostree --repo=repo init --mode=archive
           ostree --repo=repo remote add cursor-flatpak "${BASE_URL%/}" --gpg-import=repo.gpg

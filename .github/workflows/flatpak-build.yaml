@@ -154,7 +154,7 @@ jobs:
           # Mirror repository
           ostree --repo=repo init --mode=archive
           ostree --repo=repo remote add cursor-flatpak "${BASE_URL%/}" --gpg-import=repo.gpg
-          ostree --repo=repo pull --mirror cursor-flatpak --require-static-deltas
+          ostree --repo=repo pull --mirror cursor-flatpak --depth=-1
 
           # Generate summary
           flatpak build-update-repo \

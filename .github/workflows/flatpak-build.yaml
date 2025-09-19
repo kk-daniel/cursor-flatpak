@@ -154,7 +154,7 @@ jobs:
           # Mirror repository
           ostree --repo=repo init --mode=archive
           ostree --repo=repo remote add cursor-flatpak "${BASE_URL%/}" --gpg-import=repo.gpg
-          ostree --repo=repo pull --mirror cursor-flatpak
+          ostree --repo=repo pull --mirror cursor-flatpak --require-static-deltas
 
           # Generate summary
           flatpak build-update-repo \
@@ -165,6 +165,8 @@ jobs:
 
           # Restore config
           curl -o repo/config -sf "${BASE_URL}config"
+          # Remove extra files
+          rm -rf repo/*.trustedkeys.gpg repo/extensions repo/state repo/tmp
 
       - name: Clean branch name
         id: clean-branch-name

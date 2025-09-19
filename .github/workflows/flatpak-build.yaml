@@ -70,7 +70,6 @@ jobs:
 
       - name: Extract version
         id: extract-version
-        if: github.ref == 'refs/heads/main' && github.ref_type != 'tag'
         run: |
           set -e
 

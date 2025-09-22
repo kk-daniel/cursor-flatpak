@@ -291,7 +291,7 @@ jobs:
       id-token: write
     steps:
       - name: Download flatpak artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           pattern: "*.flatpak"
           merge-multiple: true

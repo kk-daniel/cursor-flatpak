@@ -158,6 +158,12 @@ jobs:
           ostree --repo=repo remote add cursor-flatpak "${BASE_URL%/}" --gpg-import=repo.gpg
           ostree --repo=repo pull --mirror cursor-flatpak --depth=-1
 
+          # Remove extra refs
+          find repo/refs/heads/app repo/refs/heads/runtime \
+            -type f \
+            -not -name main \
+            -delete
+
           # Generate summary
           flatpak build-update-repo \
             --gpg-sign="$GPG_KEY_ID" \

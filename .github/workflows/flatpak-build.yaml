@@ -270,6 +270,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     needs: [build, extract-version]
     if: >-
       always() && !cancelled() &&
@@ -286,6 +287,11 @@ jobs:
           overwrite_files: true
           body: "Cursor ${{ needs.extract-version.outputs.version }}"
           prerelease: true
+      - name: Trigger release build
+        uses: benc-uk/workflow-dispatch@v1.2.4
+        with:
+          workflow: ${{ github.workflow }}
+          ref: cursor-${{ needs.extract-version.outputs.version }}
 
   deploy:
     if: >-

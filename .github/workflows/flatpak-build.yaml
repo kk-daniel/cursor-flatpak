@@ -290,6 +290,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PULL_REQUEST: ${{ inputs.auto_merge_pr }}
+          MERGE_METHOD: "squash"
+          MERGE_LABELS: ""
 
   auto-release:
     runs-on: ubuntu-latest

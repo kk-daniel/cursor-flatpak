@@ -49,7 +49,7 @@ jobs:
         uses: benc-uk/workflow-dispatch@v1.2.4
         with:
           workflow: ${{ github.workflow }}
-          ref: ${{ github.head_ref }}
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
 
   extract-version:
     runs-on: ubuntu-latest

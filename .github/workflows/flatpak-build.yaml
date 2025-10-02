@@ -20,16 +20,24 @@ env:
 jobs:
   post-renovate:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      actions: write
-    if: github.event_name == 'pull_request' && github.actor == 'renovate[bot]'
+    if: github.event_name == 'pull_request' && github.actor == 'renovate[bot]' && github.head_ref == 'refs/heads/renovate/cursor'
     outputs:
       changes_detected: ${{ steps.commit.outputs.changes_detected }}
     steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Get GitHub App User ID
+        id: get-user-id
+        run: echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
       - name: Checkout
         uses: actions/checkout@v5
         with:
+          token: ${{ steps.app-token.outputs.token }}
           ref: ${{ github.head_ref }}
           fetch-depth: 2
       - name: Update checksums
@@ -50,13 +58,6 @@ jobs:
           commit_options: '--amend --no-edit'
           push_options: '--force'
           file_pattern: ${{ env.APP_ID }}/${{ env.APP_ID }}.yaml ${{ env.APP_ID }}/${{ env.APP_ID }}.metainfo.xml
-      - name: Trigger build
-        uses: benc-uk/workflow-dispatch@v1.2.4
-        with:
-          workflow: ${{ github.workflow }}
-          ref: ${{ github.head_ref }}
-          inputs: >-
-            {"auto_merge_pr": "${{ github.event.pull_request.number }}"}
 
   extract-version:
     runs-on: ubuntu-latest
@@ -273,26 +274,6 @@ jobs:
                 "Build flatpak: ${{ steps.build-flatpak.conclusion }}\nUpdate repo: ${{ steps.update-repo.conclusion }}\nInit github pages: ${{ steps.init-github-pages.conclusion }}\nSave repo: ${{ steps.save-repo.conclusion }}"
             }
 
-  auto-merge:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    needs: [build, extract-version]
-    if: >-
-      always() && !cancelled() &&
-      needs.build.result == 'success' &&
-      github.event_name == 'workflow_dispatch' &&
-      inputs.auto_merge_pr != ''
-    steps:
-      - name: Auto-merge PR
-        uses: pascalgn/automerge-action@v0.16.4
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          PULL_REQUEST: ${{ inputs.auto_merge_pr }}
-          MERGE_METHOD: "squash"
-          MERGE_LABELS: ""
-
   auto-release:
     runs-on: ubuntu-latest
     permissions:
@@ -306,19 +287,20 @@ jobs:
       github.ref_type != 'tag' &&
       needs.extract-version.outputs.version-changed == 'true'
     steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
+          token: ${{ steps.app-token.outputs.token }}
           tag_name: cursor-${{ needs.extract-version.outputs.version }}
           files: "*.flatpak"
           overwrite_files: true
           body: "Cursor ${{ needs.extract-version.outputs.version }}"
           prerelease: true
-      - name: Trigger release build
-        uses: benc-uk/workflow-dispatch@v1.2.4
-        with:
-          workflow: ${{ github.workflow }}
-          ref: cursor-${{ needs.extract-version.outputs.version }}
 
   deploy:
     if: >-

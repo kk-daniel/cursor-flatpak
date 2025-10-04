@@ -18,6 +18,15 @@ env:
   APP_ID: co.anysphere.cursor
 
 jobs:
+  print-head-ref:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print head ref
+        env:
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
+        run: |
+          echo "github.head_ref: $GITHUB_HEAD_REF"
+
   post-renovate:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && github.actor == 'renovate[bot]' && github.head_ref == 'refs/heads/renovate/cursor'

@@ -20,7 +20,7 @@ env:
 jobs:
   post-renovate:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.actor == 'renovate[bot]' && github.head_ref == 'refs/heads/renovate/cursor'
+    if: github.event_name == 'pull_request' && github.actor == 'renovate[bot]' && github.head_ref == 'renovate/cursor'
     outputs:
       changes_detected: ${{ steps.commit.outputs.changes_detected }}
     steps:

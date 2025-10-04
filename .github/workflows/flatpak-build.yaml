@@ -292,6 +292,11 @@ jobs:
         with:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Download flatpak artifact
+        uses: actions/download-artifact@v5
+        with:
+          pattern: "*.flatpak"
+          merge-multiple: true
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:

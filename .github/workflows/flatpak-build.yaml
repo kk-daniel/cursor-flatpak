@@ -247,7 +247,7 @@ jobs:
 
       - name: Upload repository as artifact (tags only)
         if: github.ref_type == 'tag'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: flatpak-repo
           path: repo/
@@ -293,7 +293,7 @@ jobs:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Download flatpak artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: "*.flatpak"
           merge-multiple: true
@@ -320,7 +320,7 @@ jobs:
       id-token: write
     steps:
       - name: Download flatpak artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: "*.flatpak"
           merge-multiple: true

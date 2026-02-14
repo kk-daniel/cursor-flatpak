@@ -193,7 +193,7 @@ jobs:
 
       - name: Build Flatpak
         id: build-flatpak
-        uses: jokujossai/flatpak-github-actions/flatpak-builder@c21541c58825c44b4116bde213e0b0418b4b44ce
+        uses: jokujossai/flatpak-github-actions/flatpak-builder@ad1b66ed726a37baa034681da3009761063ec360
         with:
           bundle: ${{ env.APP_ID }}.flatpak
           manifest-path: ${{ env.APP_ID }}/${{ env.APP_ID }}.yaml

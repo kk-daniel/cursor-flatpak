@@ -193,13 +193,12 @@ jobs:
 
       - name: Build Flatpak
         id: build-flatpak
-        uses: jokujossai/flatpak-github-actions/flatpak-builder@c21541c58825c44b4116bde213e0b0418b4b44ce
+        uses: flatpak/flatpak-github-actions/flatpak-builder@92ae9851ad316786193b1fd3f40c4b51eb5cb101  # v6.6
         with:
           bundle: ${{ env.APP_ID }}.flatpak
           manifest-path: ${{ env.APP_ID }}/${{ env.APP_ID }}.yaml
           branch: ${{ steps.clean-branch-name.outputs.branch }}
           gpg-sign: ${{ secrets.GPG_KEY_ID }}
-          subject: "Cursor ${{ needs.extract-version.outputs.version }}"
 
       - name: Update repo
         id: update-repo

@@ -79,7 +79,7 @@ jobs:
       - name: Extract version
         id: extract-version
         run: |
-          set -e
+          set -eo pipefail
 
           # Extract version from the URL in the manifest
           SPEC="$(grep -A 3 'filename: appimage' ${APP_ID}/${APP_ID}.yaml)"
@@ -129,7 +129,7 @@ jobs:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
         run: |
-          set -e
+          set -eo pipefail
 
           gpg --list-keys --with-keygrip
           echo "allow-preset-passphrase" >> ~/.gnupg/gpg-agent.conf
@@ -152,7 +152,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
         run: |
-          set -e
+          set -eo pipefail
 
           # Check if repository exists
           BASE_URL="$(gh api /repos/${GITHUB_REPOSITORY}/pages --jq .html_url)"
@@ -214,9 +214,14 @@ jobs:
       - name: Initialize github-pages
         id: init-github-pages
         run: |
-          set -e
+          set -eo pipefail
 
-          gpg_base64="$(gpg --export "$GPG_KEY_ID" | base64 -w 0)"
+          gpg_base64="$(cat repo.gpg | base64 -w 0)"
+
+          if [ -z "$gpg_base64" ]; then
+            echo "Error: GPG key export failed or GPG_KEY_ID is empty" >&2
+            exit 1
+          fi
 
           cat <<EOF > repo/cursor.flatpakrepo
           [Flatpak Repo]

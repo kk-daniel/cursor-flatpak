@@ -216,7 +216,7 @@ jobs:
         run: |
           set -eo pipefail
 
-          gpg_base64="$(gpg --export "$GPG_KEY_ID" | base64 -w 0)"
+          gpg_base64="$(cat repo.gpg | base64 -w 0)"
 
           if [ -z "$gpg_base64" ]; then
             echo "Error: GPG key export failed or GPG_KEY_ID is empty" >&2

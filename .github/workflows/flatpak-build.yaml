@@ -264,7 +264,7 @@ jobs:
           path: repo/
 
       - name: Publish check result
-        uses: LouisBrunner/checks-action@v2.0.0
+        uses: LouisBrunner/checks-action@v3.1.0
         if: always()
         with:
           token: ${{ github.token }}

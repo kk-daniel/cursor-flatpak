@@ -215,7 +215,6 @@ jobs:
         with:
           name: ${{ env.APP_ID }}-x86_64.flatpak
           path: ${{ env.APP_ID }}.flatpak
-          archive: false
 
       - name: Update repo
         id: update-repo

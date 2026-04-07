@@ -42,45 +42,6 @@ cleanup:
   - '*.a'
   - '*.la'
 modules:
-  - name: libusb
-    config-opts:
-      - "--disable-static"
-    cleanup:
-      - "/lib/*.la"
-      - "/lib/pkgconfig"
-      - "/include"
-    sources:
-      - type: "archive"
-        url: "https://github.com/libusb/libusb/releases/download/v1.0.27/libusb-1.0.27.tar.bz2"
-        sha256: "ffaa41d741a8a3bee244ac8e54a72ea05bf2879663c098c82fc5757853441575"
-    post-install:
-      - "install -Dm644 COPYING ${FLATPAK_DEST}/share/licenses/libusb/COPYING"
-
-  # Provide libsecret without gcrypt, forcing it to use the D-Bus backend
-  # https://github.com/flathub/org.signal.Signal/pull/756/commits/2caf105b18f906e7707f67b3cf7384a21f461564
-  - name: libsecret
-    buildsystem: meson
-    config-opts:
-      - -Dmanpage=false
-      - -Dcrypto=disabled
-      - -Dvapi=false
-      - -Dgtk_doc=false
-      - -Dintrospection=false
-      - -Dbash_completion=disabled
-    cleanup:
-      - /bin
-      - /include
-      - /lib/pkgconfig
-      - /share/man
-    sources:
-      - type: archive
-        url: https://download.gnome.org/sources/libsecret/0.21/libsecret-0.21.7.tar.xz
-        sha256: 6b452e4750590a2b5617adc40026f28d2f4903de15f1250e1d1c40bfd68ed55e
-        x-checker-data:
-          type: gnome
-          name: libsecret
-          stable-only: true
-
   - name: cursor
     buildsystem: simple
     build-commands:
@@ -143,7 +104,7 @@ modules:
       - type: file
         path: icons/512.png
     modules:
-      - ./squashfs-tools.json
+      - ../shared-modules/squashfs-tools/squashfs-tools.json
 
   - name: kerberos
     subdir: src

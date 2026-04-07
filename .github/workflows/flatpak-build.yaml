@@ -195,10 +195,27 @@ jobs:
         id: build-flatpak
         uses: flatpak/flatpak-github-actions/flatpak-builder@92ae9851ad316786193b1fd3f40c4b51eb5cb101  # v6.6
         with:
-          bundle: ${{ env.APP_ID }}.flatpak
+          build-bundle: false
+          upload-artifact: false
           manifest-path: ${{ env.APP_ID }}/${{ env.APP_ID }}.yaml
           branch: ${{ steps.clean-branch-name.outputs.branch }}
           gpg-sign: ${{ secrets.GPG_KEY_ID }}
+
+      - name: Create bundle
+        id: create-bundle
+        env:
+          BRANCH: ${{ steps.clean-branch-name.outputs.branch }}
+        run: |
+          flatpak --user remote-add --no-gpg-verify build-repo repo
+          flatpak --user install --noninteractive build-repo ${{ env.APP_ID }}//$BRANCH
+          flatpak build-bundle ~/.local/share/flatpak/repo ${{ env.APP_ID }}.flatpak --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo ${{ env.APP_ID }} $BRANCH
+
+      - name: Upload bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.APP_ID }}-x86_64.flatpak
+          path: ${{ env.APP_ID }}.flatpak
+          archive: false
 
       - name: Update repo
         id: update-repo

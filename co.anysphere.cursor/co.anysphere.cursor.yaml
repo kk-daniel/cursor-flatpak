@@ -103,16 +103,15 @@ modules:
       - type: extra-data
         filename: appimage
         url: https://downloads.cursor.com/production/a80ff7dfcaa45d7750f6e30be457261379c29b06/linux/x64/Cursor-3.0.12-x86_64.AppImage
-        sha256: 49d95c1128a98d69cb34f19fe2c0716f6f1ca50dfab87a11cc6b0f0bd5fbd96c
-        size: 301556928
-      - type: script
-        dest-filename: apply_extra
-        commands:
-          - unappimage appimage &>/dev/null
-          - rm -f appimage
-          #- rm -f squashfs-root/{.DirIcon,AppRun,cursor.desktop,co.anysphere.cursor.png}
-          - mv squashfs-root/usr/share/cursor cursor
-          - rm -rf squashfs-root
+        sha256: 754005d7c878f27ccb5bea6370019e63473b8d955bc03ff771e733657c4a26fd
+        size: 278485496
+      - type: extra-data
+        filename: anysphere.asc
+        url: https://downloads.cursor.com/keys/anysphere.asc
+        sha256: 9d2adcc95efdf65e6e76f964968734551ab70181634781f9d5952b271895ec03
+        size: 1656
+      - type: file
+        path: apply_extra
       - type: file
         path: cursor.sh
       - type: file
@@ -142,7 +141,7 @@ modules:
       - type: file
         path: icons/512.png
     modules:
-      - ./modules/unappimage/unappimage.json
+      - ./squashfs-tools.json
 
   - name: kerberos
     subdir: src

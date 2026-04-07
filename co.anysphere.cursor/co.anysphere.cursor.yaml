@@ -94,7 +94,7 @@ modules:
       - install -Dm644 ${FLATPAK_ID}-url-handler.desktop -t /app/share/applications
       - install -Dm644 npmrc -t /app/etc
       - install -Dm644 flatpak-warning.txt -t /app/share/cursor
-      - install -D apply_extra -t /app/bin
+      - install -D apply_extra verify-appimage.sh -t /app/bin
       - cp /usr/bin/ar -t /app/bin
       - ARCH_TRIPLE=$(gcc --print-multiarch) && cp /usr/lib/${ARCH_TRIPLE}/libbfd-*.so /app/lib
       - ARCH_TRIPLE=$(gcc --print-multiarch) && ln -s /usr/lib/${ARCH_TRIPLE}/libtinfo.so/app/lib/libtinfo.so.5
@@ -112,6 +112,8 @@ modules:
         size: 1656
       - type: file
         path: apply_extra
+      - type: file
+        path: verify-appimage.sh
       - type: file
         path: cursor.sh
       - type: file

@@ -1,9 +1,9 @@
 app-id: co.anysphere.cursor
 runtime: org.freedesktop.Sdk
-runtime-version: "24.08"
+runtime-version: "25.08"
 sdk: org.freedesktop.Sdk
 base: org.electronjs.Electron2.BaseApp
-base-version: "24.08"
+base-version: "25.08"
 command: cursor
 tags: [proprietary]
 separate-locales: false
@@ -11,7 +11,8 @@ finish-args:
   - --require-version=0.10.3
   - --share=network
   - --share=ipc
-  - --socket=x11
+  - --socket=wayland
+  - --socket=fallback-x11
   - --socket=pulseaudio
   - --socket=ssh-auth
   - --device=all
@@ -31,15 +32,13 @@ add-extensions:
   com.visualstudio.code.tool:
     directory: tools
     subdirectories: true
-    version: "24.08"
+    version: "25.08"
     add-ld-path: lib
     no-autodownload: true
 cleanup:
   - /include
   - /lib/pkgconfig
   - /share/gtk-doc
-  - /share/man
-  - '*.a'
   - '*.la'
 modules:
   - name: cursor
@@ -58,6 +57,7 @@ modules:
       - install -D apply_extra verify-appimage.sh -t /app/bin
       - cp /usr/bin/ar -t /app/bin
       - ARCH_TRIPLE=$(gcc --print-multiarch) && cp /usr/lib/${ARCH_TRIPLE}/libbfd-*.so /app/lib
+      - ARCH_TRIPLE=$(gcc --print-multiarch) && cp /usr/lib/${ARCH_TRIPLE}/libsframe* /app/lib
       - ARCH_TRIPLE=$(gcc --print-multiarch) && ln -s /usr/lib/${ARCH_TRIPLE}/libtinfo.so/app/lib/libtinfo.so.5
       - mkdir /app/tools
     sources:
@@ -111,9 +111,10 @@ modules:
     post-install:
       - install -Dm644 ../krb5.conf /app/etc/krb5.conf
     sources:
-      - type: archive
-        url: https://kerberos.org/dist/krb5/1.20/krb5-1.20.tar.gz
-        sha256: 7e022bdd3c851830173f9faaa006a230a0e0fdad4c953e85bff4bf0da036e12f
+      - type: git
+        url: https://github.com/krb5/krb5.git
+        tag: krb5-1.22.2-final
+        commit: 8570e77819563e036027e1da789d08ec9333ed4d
       - type: file
         path: krb5.conf
 
@@ -127,23 +128,9 @@ modules:
         sha256: 733746ab498e07d065cbecf80bacd447eb21846d1462e8fe23fdd9d9dc977b50
         dest-filename: host-spawn
         only-arches: [x86_64]
-        x-checker-data:
-          type: json
-          url: https://api.github.com/repos/1player/host-spawn/releases/latest
-          version-query: .tag_name
-          timestamp-query: .published_at
-          url-query: '"https://github.com/1player/host-spawn/releases/download/" +
-            $version + "/host-spawn-x86_64"'
 
       - type: file
         url: https://github.com/1player/host-spawn/releases/download/v1.6.1/host-spawn-aarch64
         sha256: 71b7744a4d0b29279523cc0f0ed1a7af5e9555510bd9e6d4685391b59faefaac
         dest-filename: host-spawn
         only-arches: [aarch64]
-        x-checker-data:
-          type: json
-          url: https://api.github.com/repos/1player/host-spawn/releases/latest
-          version-query: .tag_name
-          timestamp-query: .published_at
-          url-query: '"https://github.com/1player/host-spawn/releases/download/" +
-            $version + "/host-spawn-aarch64"'

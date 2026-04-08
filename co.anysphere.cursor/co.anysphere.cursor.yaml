@@ -108,6 +108,8 @@ modules:
 
   - name: kerberos
     subdir: src
+    build-options:
+      cflags: -std=gnu17 -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=implicit-function-declaration -Wno-error=implicit-int
     post-install:
       - install -Dm644 ../krb5.conf /app/etc/krb5.conf
     sources:
@@ -115,6 +117,13 @@ modules:
         url: https://github.com/krb5/krb5.git
         tag: krb5-1.20-final
         commit: fea39a0daeed8720b5c6fe095a81d8ca158351d2
+      - type: patch
+        path: krb5-autoconf-2.73.patch
+      - type: patch
+        path: krb5-ac-cache-val-inet6.patch
+      - type: shell
+        commands:
+          - cd src && autoreconf -ivf
       - type: file
         path: krb5.conf
 

@@ -1,0 +1,19 @@
+Fix AC_CACHE_VAL nesting in KRB5_AC_INET6 for autoconf 2.72+
+
+Move the closing ]) of AC_CACHE_VAL after fi to fix shell syntax error
+in the generated configure script. Backported from krb5-1.22.2.
+
+diff --git a/src/aclocal.m4 b/src/aclocal.m4
+--- a/src/aclocal.m4
++++ b/src/aclocal.m4
+@@ -387,8 +387,8 @@ else
+       [[struct sockaddr_in6 in;
+         AF_INET6;
+         IN6_IS_ADDR_LINKLOCAL(&in.sin6_addr);]])],
+-    [krb5_cv_inet6=yes], [krb5_cv_inet6=no])])
+-fi
++    [krb5_cv_inet6=yes], [krb5_cv_inet6=no])
++fi])
+ AC_MSG_RESULT($krb5_cv_inet6)
+ if test "$krb5_cv_inet6" = no && test "$ac_cv_func_inet_ntop" = yes; then
+ AC_MSG_CHECKING(for IPv6 compile-time support with -DINET6)

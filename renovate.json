@@ -20,7 +20,7 @@
         "/\\/co\\.anysphere\\.cursor\\.yaml$/"
       ],
       "matchStrings": [
-        "url: https://downloads.cursor.com/aptrepo/pool/stable/c/cu/(?<depName>cursor)_(?<currentValue>[^_]+)_amd64\\.deb"
+        "url: https://downloads.cursor.com/aptrepo/pool/stable/c/cu/(?<depName>cursor)_(?<currentValue>[^_]+)_(?:amd64|arm64)\\.deb"
       ],
       "registryUrlTemplate": "https://downloads.cursor.com/aptrepo?suite=stable&components=main&binaryArch=amd64",
       "datasourceTemplate": "deb",

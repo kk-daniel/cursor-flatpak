@@ -82,11 +82,10 @@ jobs:
           set -eo pipefail
 
           # Extract version from the URL in the manifest
-          SPEC="$(grep -A 3 'filename: appimage' ${APP_ID}/${APP_ID}.yaml)"
-          URL="$(echo "$SPEC" | grep -o 'url: .*' | cut -d' ' -f2)"
+          URL="$(grep -A 4 'filename: cursor.deb' ${APP_ID}/${APP_ID}.yaml | grep -o 'url: .*' | head -1 | cut -d' ' -f2)"
 
-          # Extract version from URL (e.g., Cursor-1.6.14-x86_64.AppImage -> 1.6.14)
-          VERSION="$(echo "$URL" | sed -n 's/.*Cursor-\([0-9]\+\.[0-9]\+\.[0-9]\+\)-.*/\1/p')"
+          # Extract version from URL (e.g., cursor_3.0.13_amd64.deb -> 3.0.13)
+          VERSION="$(echo "$URL" | sed -n 's/.*cursor_\([0-9]\+\.[0-9]\+\.[0-9]\+\)_.*/\1/p')"
 
           if [ -z "$VERSION" ]; then
             echo "Error: Could not extract version from URL: $URL"
@@ -97,7 +96,7 @@ jobs:
           echo "Version: ${VERSION}"
 
           # Check if version was updated on this commit
-          if git diff HEAD~1..HEAD ${APP_ID}/${APP_ID}.yaml | grep -A 3 'filename: appimage' | grep -q '^.\s*url: '
+          if git diff HEAD~1..HEAD ${APP_ID}/${APP_ID}.yaml | grep -A 3 'filename: cursor.deb' | grep -q '^.\s*url: '
           then
             echo "version-changed=true" >> $GITHUB_OUTPUT
             echo "Version changed: true"

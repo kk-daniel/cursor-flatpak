@@ -8,21 +8,23 @@
     {
       "description": "Cursor",
       "groupName": "cursor",
-      "matchPackageNames": ["Cursor"],
+      "matchPackageNames": ["cursor"],
       "automerge": true
     }
   ],
   "customManagers": [
     {
       "customType": "regex",
-      "description": "Cursor AppImage",
+      "description": "Cursor deb package",
       "managerFilePatterns": [
         "/\\/co\\.anysphere\\.cursor\\.yaml$/"
       ],
       "matchStrings": [
-        "url: https://downloads.cursor.com/production/(?<currentDigest>[^/]+)/linux/x64/(?<depName>Cursor)-(?<currentValue>[^-]+)-x86_64.AppImage"
+        "url: https://downloads.cursor.com/aptrepo/pool/stable/c/cu/(?<depName>cursor)_(?<currentValue>[^_]+)_amd64\\.deb"
       ],
-      "datasourceTemplate": "custom.cursor"
+      "registryUrlTemplate": "https://downloads.cursor.com/aptrepo?suite=stable&components=main&binaryArch=amd64",
+      "datasourceTemplate": "deb",
+      "extractVersionTemplate": "^(?<version>[\\d.]+)"
     },
     {
       "customType": "regex",
@@ -71,13 +73,6 @@
       "format": "json",
       "transformTemplates": [
         "{ \"releases\": $each($$, function($v, $k) { $k })[$contains(\"org.freedesktop.Sdk/x86_64/\")] ~> $map(function($k) { { \"version\": $split($k, \"/\")[2] } }) }"
-      ]
-    },
-    "cursor": {
-      "defaultRegistryUrlTemplate": "https://cursor.com/api/download?platform=linux-x64&releaseTrack=stable",
-      "format": "json",
-      "transformTemplates": [
-        "{ \"releases\": [{ \"version\": $$.version, \"sourceUrl\": $$.downloadUrl, \"digest\": $$.commitSha }] }"
       ]
     }
   }

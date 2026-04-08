@@ -113,8 +113,8 @@ modules:
     sources:
       - type: git
         url: https://github.com/krb5/krb5.git
-        tag: krb5-1.22.2-final
-        commit: 8570e77819563e036027e1da789d08ec9333ed4d
+        tag: krb5-1.20-final
+        commit: fea39a0daeed8720b5c6fe095a81d8ca158351d2
       - type: file
         path: krb5.conf
 

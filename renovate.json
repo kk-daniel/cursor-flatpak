@@ -38,6 +38,19 @@
     },
     {
       "customType": "regex",
+      "description": "freedesktop-sdk runtime version",
+      "managerFilePatterns": [
+        "/\\/co\\.anysphere\\.cursor\\.yaml$/"
+      ],
+      "matchStrings": [
+        "runtime-version: \"(?<currentValue>[\\d.]+)\""
+      ],
+      "depNameTemplate": "org.freedesktop.Sdk",
+      "datasourceTemplate": "custom.flathub-runtime",
+      "versioningTemplate": "loose"
+    },
+    {
+      "customType": "regex",
       "description": "kerberos (krb5) git tags",
       "managerFilePatterns": [
         "/\\/co\\.anysphere\\.cursor\\.yaml$/"
@@ -47,10 +60,17 @@
       ],
       "datasourceTemplate": "github-tags",
       "extractVersionTemplate": "^krb5-(?<version>[\\d.]+)-final$",
-      "versioningTemplate": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
+      "versioningTemplate": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)(\\.(?<patch>\\d+))?$"
     }
   ],
   "customDatasources": {
+    "flathub-runtime": {
+      "defaultRegistryUrlTemplate": "https://flathub.org/api/v2/runtimes",
+      "format": "json",
+      "transformTemplates": [
+        "{ \"releases\": $each($$, function($v, $k) { $k })[$contains(\"org.freedesktop.Sdk/x86_64/\")] ~> $map(function($k) { { \"version\": $split($k, \"/\")[2] } }) }"
+      ]
+    },
     "cursor": {
       "defaultRegistryUrlTemplate": "https://cursor.com/api/download?platform=linux-x64&releaseTrack=stable",
       "format": "json",

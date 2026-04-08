@@ -78,22 +78,29 @@ update_arch() {
         exit 1
     fi
 
+    # Verify the manifest URL matches the Packages index
+    MANIFEST_URL="$(grep -B 1 -A 4 "only-arches: \[$FLATPAK_ARCH\]" co.anysphere.cursor.yaml \
+        | grep -A 4 'filename: cursor.deb' | grep -o 'url: .*' | cut -d' ' -f2)"
+
+    if [ "$MANIFEST_URL" != "$DEB_URL" ]; then
+        echo "ERROR: Manifest URL does not match Packages index ($DEB_ARCH)!" >&2
+        echo "  Manifest:  $MANIFEST_URL" >&2
+        echo "  Packages:  $DEB_URL" >&2
+        exit 1
+    fi
+
     echo "Verified .deb ($DEB_ARCH):"
-    echo "  url: $DEB_URL"
     echo "  sha256: $DEB_SHA256"
     echo "  size: $DEB_SIZE"
 
-    # Update manifest for this architecture
-    SPEC="$(grep -B 1 -A 4 "only-arches: \[$FLATPAK_ARCH\]" co.anysphere.cursor.yaml | grep -A 4 'filename: cursor.deb')"
-    OLD_URL="$(echo "$SPEC" | grep -o 'url: .*' | cut -d' ' -f2)"
-    OLD_SHA256="$(echo "$SPEC" | grep -o 'sha256: .*' | head -1)"
-    OLD_SIZE="$(echo "$SPEC" | grep -o 'size: .*')"
-
-    sed -i \
-        -e "s|$OLD_URL|$DEB_URL|" \
-        -e "0,/$OLD_SHA256/s/$OLD_SHA256/sha256: $DEB_SHA256/" \
-        -e "0,/$OLD_SIZE/s/$OLD_SIZE/size: $DEB_SIZE/" \
-        co.anysphere.cursor.yaml
+    # Update only sha256 and size (anchor on the unique URL)
+    awk -v url="$DEB_URL" -v new_sha256="$DEB_SHA256" -v new_size="$DEB_SIZE" '
+    index($0, url) { found = 1 }
+    found && /sha256:/ { sub(/sha256: .*/, "sha256: " new_sha256) }
+    found && /size:/   { sub(/size: .*/,   "size: " new_size); found = 0 }
+    { print }
+    ' co.anysphere.cursor.yaml > "$TMPDIR/manifest.yaml" \
+        && mv "$TMPDIR/manifest.yaml" co.anysphere.cursor.yaml
 
     echo ""
 }

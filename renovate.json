@@ -23,7 +23,8 @@
         "url: https://downloads.cursor.com/aptrepo/pool/stable/c/cu/(?<depName>cursor)_(?<currentValue>[^_]+)_amd64\\.deb"
       ],
       "registryUrlTemplate": "https://downloads.cursor.com/aptrepo?suite=stable&components=main&binaryArch=amd64",
-      "datasourceTemplate": "deb"
+      "datasourceTemplate": "deb",
+      "extractVersionTemplate": "^(?<version>[\\d.]+)"
     },
     {
       "customType": "regex",

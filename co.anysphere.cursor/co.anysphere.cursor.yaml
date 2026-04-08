@@ -54,27 +54,24 @@ modules:
       - install -Dm644 ${FLATPAK_ID}-url-handler.desktop -t /app/share/applications
       - install -Dm644 npmrc -t /app/etc
       - install -Dm644 flatpak-warning.txt -t /app/share/cursor
-      - install -D apply_extra verify-appimage.sh -t /app/bin
+      - install -D apply_extra -t /app/bin
       - cp /usr/bin/ar -t /app/bin
-      - ARCH_TRIPLE=$(gcc --print-multiarch) && cp /usr/lib/${ARCH_TRIPLE}/libbfd-*.so /app/lib
-      - ARCH_TRIPLE=$(gcc --print-multiarch) && cp /usr/lib/${ARCH_TRIPLE}/libsframe* /app/lib
-      - ARCH_TRIPLE=$(gcc --print-multiarch) && ln -s /usr/lib/${ARCH_TRIPLE}/libtinfo.so/app/lib/libtinfo.so.5
       - mkdir /app/tools
     sources:
       - type: extra-data
-        filename: appimage
-        url: https://downloads.cursor.com/production/a80ff7dfcaa45d7750f6e30be457261379c29b06/linux/x64/Cursor-3.0.12-x86_64.AppImage
-        sha256: 754005d7c878f27ccb5bea6370019e63473b8d955bc03ff771e733657c4a26fd
-        size: 278485496
+        filename: cursor.deb
+        only-arches: [x86_64]
+        url: https://downloads.cursor.com/aptrepo/pool/stable/c/cu/cursor_3.0.12_amd64.deb
+        sha256: 548f3cc64c8cf38a7fc56b28e2b170b640cb4ddc90d6335b26e114b455b9fdd2
+        size: 182691352
       - type: extra-data
-        filename: anysphere.asc
-        url: https://downloads.cursor.com/keys/anysphere.asc
-        sha256: 9d2adcc95efdf65e6e76f964968734551ab70181634781f9d5952b271895ec03
-        size: 1656
+        filename: cursor.deb
+        only-arches: [aarch64]
+        url: https://downloads.cursor.com/aptrepo/pool/stable/c/cu/cursor_3.0.12_arm64.deb
+        sha256: fa5dd9268defde07aeeba728d966874e2d4d53dbbfa57f71b8627d93fe284fc4
+        size: 173490136
       - type: file
         path: apply_extra
-      - type: file
-        path: verify-appimage.sh
       - type: file
         path: cursor.sh
       - type: file
@@ -103,8 +100,6 @@ modules:
         path: icons/256.png
       - type: file
         path: icons/512.png
-    modules:
-      - ../shared-modules/squashfs-tools/squashfs-tools.json
 
   - name: kerberos
     subdir: src

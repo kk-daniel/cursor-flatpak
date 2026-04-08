@@ -1,23 +1,10 @@
 #!/bin/sh
 set -e
 
-# Verify AppImage GPG signature
-verify-appimage.sh appimage anysphere.asc
-rm -f anysphere.asc
-
-# Parse ELF to find squashfs offset (skip matches in ELF code)
-eval $(objdump -h appimage | awk '
-    /\.sig_key/ { printf "KEY_OFFSET=0x%s\nKEY_SEC_SIZE=0x%s\n", $6, $3 }
-')
-ELF_END=$((KEY_OFFSET + KEY_SEC_SIZE))
-SQFS_OFFSET=$(dd if=appimage iflag=skip_bytes skip=$ELF_END bs=4096 2>/dev/null \
-    | grep -boa 'hsqs' | head -1 | cut -d: -f1)
-SQFS_OFFSET=$((ELF_END + SQFS_OFFSET))
-
-# Extract squashfs and install
-dd if=appimage iflag=skip_bytes skip="$SQFS_OFFSET" bs=4096 of=appimage.squashfs 2>/dev/null
-rm -f appimage
-unsquashfs -quiet -no-progress appimage.squashfs
-rm -f appimage.squashfs
-mv squashfs-root/usr/share/cursor cursor
-rm -rf squashfs-root
+# Extract .deb and install
+ar x cursor.deb
+rm -f cursor.deb
+tar xf data.tar.xz
+rm -f control.tar.* data.tar.xz debian-binary
+mv usr/share/cursor cursor
+rm -rf usr

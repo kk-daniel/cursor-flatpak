@@ -15,6 +15,7 @@
   "customManagers": [
     {
       "customType": "regex",
+      "description": "Cursor AppImage",
       "managerFilePatterns": [
         "/\\/co\\.anysphere\\.cursor\\.yaml$/"
       ],
@@ -22,9 +23,56 @@
         "url: https://downloads.cursor.com/production/(?<currentDigest>[^/]+)/linux/x64/(?<depName>Cursor)-(?<currentValue>[^-]+)-x86_64.AppImage"
       ],
       "datasourceTemplate": "custom.cursor"
+    },
+    {
+      "customType": "regex",
+      "description": "host-spawn binary releases",
+      "managerFilePatterns": [
+        "/\\/co\\.anysphere\\.cursor\\.yaml$/"
+      ],
+      "matchStrings": [
+        "url: https://github\\.com/(?<depName>1player/host-spawn)/releases/download/v(?<currentValue>[\\d.]+)/host-spawn-\\w+\\s+sha256: (?<currentDigest>[a-f0-9]+)"
+      ],
+      "datasourceTemplate": "github-release-attachments",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "freedesktop-sdk runtime version (manifest and CI image)",
+      "managerFilePatterns": [
+        "/\\/co\\.anysphere\\.cursor\\.yaml$/",
+        "/\\.github\\/workflows\\/flatpak-build\\.yaml$/"
+      ],
+      "matchStrings": [
+        "runtime-version: \"(?<currentValue>[\\d.]+)\"",
+        "image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-(?<currentValue>[\\d.]+)"
+      ],
+      "depNameTemplate": "org.freedesktop.Sdk",
+      "datasourceTemplate": "custom.flathub-runtime",
+      "versioningTemplate": "loose"
+    },
+    {
+      "customType": "regex",
+      "description": "kerberos (krb5) git tags",
+      "managerFilePatterns": [
+        "/\\/co\\.anysphere\\.cursor\\.yaml$/"
+      ],
+      "matchStrings": [
+        "url: https://github\\.com/(?<depName>krb5/krb5)\\.git\\s+tag: krb5-(?<currentValue>[\\d.]+)-final\\s+commit: (?<currentDigest>[a-f0-9]+)"
+      ],
+      "datasourceTemplate": "github-tags",
+      "extractVersionTemplate": "^krb5-(?<version>[\\d.]+)-final$",
+      "versioningTemplate": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)(\\.(?<patch>\\d+))?$"
     }
   ],
   "customDatasources": {
+    "flathub-runtime": {
+      "defaultRegistryUrlTemplate": "https://flathub.org/api/v2/runtimes",
+      "format": "json",
+      "transformTemplates": [
+        "{ \"releases\": $each($$, function($v, $k) { $k })[$contains(\"org.freedesktop.Sdk/x86_64/\")] ~> $map(function($k) { { \"version\": $split($k, \"/\")[2] } }) }"
+      ]
+    },
     "cursor": {
       "defaultRegistryUrlTemplate": "https://cursor.com/api/download?platform=linux-x64&releaseTrack=stable",
       "format": "json",

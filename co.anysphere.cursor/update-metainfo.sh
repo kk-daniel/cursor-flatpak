@@ -4,8 +4,7 @@ set -e
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
 
 # Extract version from the URL in the manifest (e.g., cursor_3.0.13_amd64.deb -> 3.0.13)
-SPEC="$(grep -A 3 'filename: cursor.deb' co.anysphere.cursor.yaml)"
-URL="$(echo "$SPEC" | grep -o 'url: .*' | cut -d' ' -f2)"
+URL="$(grep -A 4 'filename: cursor.deb' co.anysphere.cursor.yaml | grep -o 'url: .*' | head -1 | cut -d' ' -f2)"
 
 VERSION="$(echo "$URL" | sed -n 's/.*cursor_\([0-9]\+\.[0-9]\+\.[0-9]\+\)_.*/\1/p')"
 

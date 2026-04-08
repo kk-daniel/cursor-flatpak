@@ -114,8 +114,6 @@ modules:
         commit: 8570e77819563e036027e1da789d08ec9333ed4d
       - type: patch
         path: krb5-autoconf-2.73.patch
-      - type: patch
-        path: krb5-ac-cache-val-inet6.patch
       - type: shell
         commands:
           - cd src && autoreconf -ivf

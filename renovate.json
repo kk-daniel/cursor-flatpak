@@ -38,12 +38,14 @@
     },
     {
       "customType": "regex",
-      "description": "freedesktop-sdk runtime version",
+      "description": "freedesktop-sdk runtime version (manifest and CI image)",
       "managerFilePatterns": [
-        "/\\/co\\.anysphere\\.cursor\\.yaml$/"
+        "/\\/co\\.anysphere\\.cursor\\.yaml$/",
+        "/\\.github\\/workflows\\/flatpak-build\\.yaml$/"
       ],
       "matchStrings": [
-        "runtime-version: \"(?<currentValue>[\\d.]+)\""
+        "runtime-version: \"(?<currentValue>[\\d.]+)\"",
+        "image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-(?<currentValue>[\\d.]+)"
       ],
       "depNameTemplate": "org.freedesktop.Sdk",
       "datasourceTemplate": "custom.flathub-runtime",

@@ -33,10 +33,9 @@
         "/\\/co\\.anysphere\\.cursor\\.yaml$/"
       ],
       "matchStrings": [
-        "url: https://github\\.com/(?<depName>1player/host-spawn)/releases/download/v(?<currentValue>[\\d.]+)/host-spawn-\\w+\\s+sha256: (?<currentDigest>[a-f0-9]+)"
+        "url: https://github\\.com/(?<depName>1player/host-spawn)/releases/download/(?<currentValue>v[\\d.]+)/host-spawn-\\w+\\s+sha256: (?<currentDigest>[a-f0-9]+)"
       ],
-      "datasourceTemplate": "github-release-attachments",
-      "extractVersionTemplate": "^v(?<version>.+)$"
+      "datasourceTemplate": "github-release-attachments"
     },
     {
       "customType": "regex",

@@ -276,7 +276,7 @@ jobs:
 
       - name: Save pages artifact
         id: save-repo
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: repo/
 

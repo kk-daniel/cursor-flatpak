@@ -61,15 +61,15 @@ modules:
       - type: extra-data
         filename: cursor.deb
         only-arches: [x86_64]
-        url: https://downloads.cursor.com/aptrepo/pool/stable/c/cu/cursor_3.2.11_amd64.deb
-        sha256: 60372856fb2ba9c590f47eb4ec9fc76ea4bd3624718dc73146688a0de0528c9b
-        size: 174576472
+        url: https://downloads.cursor.com/aptrepo/pool/stable/c/cu/cursor_3.2.16_amd64.deb
+        sha256: f76e8011d3c1cecc2ee32d20402d95d82d0fe473ff30f368233e68633b462ce8
+        size: 174594104
       - type: extra-data
         filename: cursor.deb
         only-arches: [aarch64]
-        url: https://downloads.cursor.com/aptrepo/pool/stable/c/cu/cursor_3.2.11_arm64.deb
-        sha256: 2758e6dbfa8ee5dbac4a7e0b47a37892a87d78b1ec57a5100c6eadcab4626b58
-        size: 164502872
+        url: https://downloads.cursor.com/aptrepo/pool/stable/c/cu/cursor_3.2.16_arm64.deb
+        sha256: 6986805f9d8269e5c7c89b984248298fc1a944cb87c987e3d92fd1ee1b3ac61b
+        size: 164554524
       - type: file
         path: apply_extra
       - type: file
